@@ -1,0 +1,10 @@
+{
+    "application" :"git",
+    "alias": {
+        "contains": "tag --sort=creatordate --contains",
+        "push_gerrit": "push origin HEAD:refs/for/",
+        "st": "status"
+    }
+
+}
+
