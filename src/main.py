@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 import os
+from pprint import pprint
 
 try:
     import yaml
@@ -20,12 +21,31 @@ def main():
         own_args = sys.argv[1:]
         sub_args = []
 
+    positions = [i for i, arg in enumerate(sys.argv) if arg == '--']
+
+    if len(positions) == 1:
+        idx = positions[0]
+        own_args = sys.argv[1:idx]
+        sub_args = sys.argv[idx+1:]
+    elif len(positions) >= 2:
+        idx1 = positions[0]
+        idx2 = positions[1]
+        own_args = sys.argv[1:idx1] + sys.argv[idx2+1:]
+        sub_args = sys.argv[idx1+1:idx2]
+    else:
+        own_args = sys.argv[1:]
+        sub_args = []
+
     # Parse own_args
     parser = argparse.ArgumentParser(description="Aliasmate: Command-line alias substitution tool")
     parser.add_argument('-c', '--config', help='Config file (JSON or YAML)', required=True)
+    parser.add_argument('--version', help='print current version', required=False, action='store_true')
+    parser.add_argument('--show-alias', help='print current config and the result command without execution', required=False, action='store_true')
     args = parser.parse_args(own_args)
 
     config_file = args.config
+    if args.version:
+        print("aliasmate version 1.0.0")
 
     try:
         with open(config_file, 'r') as f:
@@ -42,6 +62,9 @@ def main():
     except Exception as e:
         print(f"Error reading config file: {e}")
         sys.exit(1)
+
+    if args.show_alias:
+        pprint(config)
 
     application_str = config.get('application', '')
     if not application_str:
@@ -76,10 +99,14 @@ def main():
     tokens = sub_args
     output_tokens = substitute_tokens(tokens, alias_dict)
     application_tokens = application_str.split()
-    final_tokens = application_tokens + output_tokens
+    final_tokens = application_tokens + output_tokens 
     command_str = ' '.join(final_tokens)
-    print(command_str)
-    os.execvp(final_tokens[0], final_tokens)
+    if args.show_alias:
+        print()
+        print("Command for execution:")
+        print(command_str)
+    if not args.show_alias:
+        os.execvp(final_tokens[0], final_tokens)
 
 if __name__ == '__main__':
     main()
