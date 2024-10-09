@@ -1,6 +1,8 @@
 # AliasMate
 
-**AliasMate** is a command-line tool that allows you to execute commands based on configuration files containing aliases. It simplifies complex commands by providing a readable and configurable way to use application aliases and arguments.
+**AliasMate** is a command-line tool that allows you to execute commands based on configuration files containing
+aliases. It simplifies complex commands by providing a readable and configurable way to use application aliases and
+arguments.
 
 ## Features
 
@@ -12,27 +14,15 @@
 
 ## Installation
 
-To install and run **AliasMate**, you need to have [Rust](https://www.rust-lang.org/tools/install) installed. Once Rust is installed, you can build and run the application.
+`pip install aliasmate`
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/maslovw/aliasmate.git
-    ```
+or
 
-2. Navigate to the project directory:
-    ```bash
-    cd aliasmate
-    ```
-
-3. Build the project:
-    ```bash
-    cargo build --release
-    ```
-
-4. Run the application:
-    ```bash
-    ./target/release/aliasmate -c config.json -- alias [additional arguments]
-    ```
+```bash
+git clone https://github.com/maslovw/aliasmate.git
+cd aliasmate
+pip install .
+```
 
 ## Usage
 
@@ -44,41 +34,73 @@ Here’s an example `config.json` file:
 
 ```json
 {
-    "application": "mount",
-    "alias": {
-        "myserver": "/media/myserver",
-        "readwrite": "-o rw"
-    }
+  "application": "mount",
+  "alias": {
+    "read only": "-o ro",
+    "read write": "-o rw",
+    "no execute": "-o noexec",
+    "user mount": "-o user",
+    "bind": "--bind",
+    "verbose": "-v",
+    "all": "-a",
+    "remount": "-o remount",
+    "loop": "-o loop"
+  }
 }
 ```
 
 ### Example Command
 
 ```bash
-aliasmate -c config.json -- myserver readwrite -t nfs
+$ alias mountmate="aliasmate -c mount_aliases.json --"
+$ sudo mountmate read only /dev/sdb1 /mnt/usb
 ```
-
 This command will execute:
 
 ```bash
-mount /media/myserver -o rw -t nfs
+mount -o ro /dev/sdb1 /mnt/usb
+```
+It is possible to pass arguments to aliasmate with second `--` group of arguments:
+
+```bash
+$ sudo mountmate read only /dev/sdb1 /mnt/usb -- --verbose
+Command for execution:
+mount -o ro /dev/sdb1 /mnt/usb
+```
+### Another example
+
+```json
+{
+  "application": "tar",
+  "alias": {
+    "create": "-c",
+    "extract": "-x",
+    "gzip": "-z",
+    "bzip2": "-j",
+    "file": "-f",
+    "verbose": "-v",
+    "list": "-t",
+    "xz": "-J"
+  }
+}
 ```
 
-- `myserver` is replaced by `/media/myserver` based on the alias defined in the config file.
-- `readwrite` is replaced by `-o rw`.
-- Any additional arguments (like `-t nfs`) are appended to the command.
+```bash
+$ alias tarmate="aliasmate -c tar_aliases.json --"
+
+$ tarmate create gzip file archive.tar.gz directory/
+$ tarmate extract bzip2 verbose file archive.tar.bz2
+$ tarmate list xz file 'archive.tar.xz'
+```
 
 ### Arguments
 
 - `-c, --config <FILE>`: Specifies the configuration file (JSON or YAML).
-- `alias`: An alias defined in the configuration file.
-- Additional arguments (after `--`) are passed directly to the command.
+- `-s`, `--show-alias`: print currently used configuration and resulting command, without execution
+- `-v`, `--verbose`: print resulting command and execute it
+- Additional arguments (after `--`) are passed directly to the application.
+- 2nd Additional arguments (after 2nd `--`) are passed directly to the aliasmate(append to first arguments).
 
-### Exit Status
-
-**AliasMate** will return the exit status of the executed command:
-- `0`: Success (command executed successfully).
-- Non-zero: Error (command failed, with the corresponding exit code).
 
 ---
 

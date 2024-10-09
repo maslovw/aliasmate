@@ -1,51 +1,54 @@
-#!/usr/bin/env python3
-
 import argparse
 import json
 import sys
-import os
+import subprocess
 from pprint import pprint
+
+VERSION='0.1.0'
 
 try:
     import yaml
 except ImportError:
     yaml = None
 
-def main():
+def split_arguments(argv):
     # Split sys.argv manually to handle '--'
-    if '--' in sys.argv:
-        idx = sys.argv.index('--')
-        own_args = sys.argv[1:idx]
-        sub_args = sys.argv[idx+1:]
-    else:
-        own_args = sys.argv[1:]
-        sub_args = []
-
-    positions = [i for i, arg in enumerate(sys.argv) if arg == '--']
+    positions = [i for i, arg in enumerate(argv) if arg == '--']
 
     if len(positions) == 1:
         idx = positions[0]
-        own_args = sys.argv[1:idx]
-        sub_args = sys.argv[idx+1:]
+        own_args = argv[1:idx]
+        sub_args = argv[idx+1:]
     elif len(positions) >= 2:
         idx1 = positions[0]
         idx2 = positions[1]
-        own_args = sys.argv[1:idx1] + sys.argv[idx2+1:]
-        sub_args = sys.argv[idx1+1:idx2]
+        own_args = argv[1:idx1] + argv[idx2+1:]
+        sub_args = argv[idx1+1:idx2]
     else:
-        own_args = sys.argv[1:]
+        own_args = argv[1:]
         sub_args = []
+    return own_args, sub_args
 
+def main():
+    own_args, sub_args = split_arguments(sys.argv)
     # Parse own_args
-    parser = argparse.ArgumentParser(description="Aliasmate: Command-line alias substitution tool")
+    parser = argparse.ArgumentParser(description='''Aliasmate: Command-line alias substitution tool
+All arguments before `--` will be accepted by aliasmate
+All arguments after `--` will pass substitution according to config and given to the application
+It is possible to use second `--` group of arguments to pass back to aliasmate''',
+                                     usage='use "%(prog)s --help',
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-c', '--config', help='Config file (JSON or YAML)', required=True)
+    parser.add_argument('-s', '--show-alias', help='print current config and the result command without execution', required=False, action='store_true')
+    parser.add_argument('-v', '--verbose', help='print result command before executing', required=False, action='store_true')
     parser.add_argument('--version', help='print current version', required=False, action='store_true')
-    parser.add_argument('--show-alias', help='print current config and the result command without execution', required=False, action='store_true')
     args = parser.parse_args(own_args)
 
-    config_file = args.config
     if args.version:
-        print("aliasmate version 1.0.0")
+        print(VERSION)
+        sys.exit(0)
+
+    config_file = args.config
 
     try:
         with open(config_file, 'r') as f:
@@ -65,6 +68,7 @@ def main():
 
     if args.show_alias:
         pprint(config)
+        print()
 
     application_str = config.get('application', '')
     if not application_str:
@@ -99,14 +103,24 @@ def main():
     tokens = sub_args
     output_tokens = substitute_tokens(tokens, alias_dict)
     application_tokens = application_str.split()
-    final_tokens = application_tokens + output_tokens 
+    final_tokens = application_tokens + output_tokens
     command_str = ' '.join(final_tokens)
-    if args.show_alias:
-        print()
+
+    is_verbose = (args.show_alias | args.verbose)
+
+    if is_verbose:
         print("Command for execution:")
         print(command_str)
-    if not args.show_alias:
-        os.execvp(final_tokens[0], final_tokens)
+    if args.show_alias:
+        sys.exit(0)
+
+    try:
+        output = subprocess.run(command_str, shell=True, check=True)
+        #os.execvp(final_tokens[0], final_tokens)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+    except Exception as e:
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
