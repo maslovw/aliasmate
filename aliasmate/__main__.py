@@ -41,12 +41,8 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
     parser.add_argument('-c', '--config', help='Config file (JSON or YAML)', required=True)
     parser.add_argument('-s', '--show-alias', help='print current config and the result command without execution', required=False, action='store_true')
     parser.add_argument('-v', '--verbose', help='print result command before executing', required=False, action='store_true')
-    parser.add_argument('--version', help='print current version', required=False, action='store_true')
+    parser.add_argument("--version", action="version", version="0.1.0")
     args = parser.parse_args(own_args)
-
-    if args.version:
-        print(VERSION)
-        sys.exit(0)
 
     config_file = args.config
 
