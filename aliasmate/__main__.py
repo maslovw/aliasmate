@@ -4,7 +4,7 @@ import sys
 import subprocess
 from pprint import pprint
 
-VERSION='0.1.1'
+VERSION='0.1.2'
 
 try:
     import yaml
@@ -13,6 +13,17 @@ except ImportError:
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
+def read_and_print_file(file_path):
+    print(f"Config File: {file_path}")
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                print(line, end='')
+    except FileNotFoundError:
+        eprint(f"Error: The file '{file_path}' does not exist.")
+    except IOError:
+        eprint(f"Error: An I/O error occurred while reading '{file_path}'.")
 
 def split_arguments(argv):
     # Split sys.argv manually to handle '--'
@@ -42,7 +53,7 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
                                      usage='use "%(prog)s --help',
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-c', '--config', help='Config file (JSON or YAML)', required=True)
-    parser.add_argument('-s', '--show-alias', help='print current config and the result command without execution', required=False, action='store_true')
+    parser.add_argument('-s', '--show-alias', '--show-config', help='print current config and the result command without execution', required=False, action='store_true')
     parser.add_argument('-v', '--verbose', help='print result command before executing', required=False, action='store_true')
     parser.add_argument("--version", action="version", version=VERSION)
     args = parser.parse_args(own_args)
@@ -71,7 +82,7 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
     is_verbose = (args.show_alias | args.verbose | config_dict.get('verbose', False))
 
     if args.show_alias:
-        pprint(config)
+        read_and_print_file(config_file)
         print()
 
     application_str = config.get('application', '')
@@ -112,8 +123,8 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
 
 
     if is_verbose:
-        print("Command for execution:")
-        print(command_str)
+        eprint("Command for execution:")
+        eprint(command_str)
     if args.show_alias:
         sys.exit(0)
 
