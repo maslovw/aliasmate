@@ -4,12 +4,15 @@ import sys
 import subprocess
 from pprint import pprint
 
-VERSION='0.1.0'
+VERSION='0.1.1'
 
 try:
     import yaml
 except ImportError:
     yaml = None
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def split_arguments(argv):
     # Split sys.argv manually to handle '--'
@@ -41,10 +44,11 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
     parser.add_argument('-c', '--config', help='Config file (JSON or YAML)', required=True)
     parser.add_argument('-s', '--show-alias', help='print current config and the result command without execution', required=False, action='store_true')
     parser.add_argument('-v', '--verbose', help='print result command before executing', required=False, action='store_true')
-    parser.add_argument("--version", action="version", version="0.1.0")
+    parser.add_argument("--version", action="version", version=VERSION)
     args = parser.parse_args(own_args)
 
     config_file = args.config
+
 
     try:
         with open(config_file, 'r') as f:
@@ -52,15 +56,19 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
                 config = json.load(f)
             elif config_file.endswith(('.yaml', '.yml')):
                 if yaml is None:
-                    print("YAML support is not available. Please install PyYAML.")
+                    eprint("YAML support is not available. Please install PyYAML.")
                     sys.exit(1)
                 config = yaml.safe_load(f)
             else:
-                print("Unsupported config file format. Must be .json or .yaml")
+                eprint("Unsupported config file format. Must be .json or .yaml")
                 sys.exit(1)
     except Exception as e:
-        print(f"Error reading config file: {e}")
+        eprint(f"Error reading config file: {e}")
         sys.exit(1)
+
+    config_dict = config.get('aliasmate', {})
+
+    is_verbose = (args.show_alias | args.verbose | config_dict.get('verbose', False))
 
     if args.show_alias:
         pprint(config)
@@ -68,7 +76,7 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
 
     application_str = config.get('application', '')
     if not application_str:
-        print("No 'application' key found in config file.")
+        eprint("No 'application' key found in config file.")
         sys.exit(1)
     alias_dict = config.get('alias', {})
 
@@ -102,7 +110,6 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
     final_tokens = application_tokens + output_tokens
     command_str = ' '.join(final_tokens)
 
-    is_verbose = (args.show_alias | args.verbose)
 
     if is_verbose:
         print("Command for execution:")
