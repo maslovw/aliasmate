@@ -48,6 +48,7 @@ Here’s an example `config.json` file:
   }
 }
 ```
+Read more here [Configuration File Format](doc/ConfigurationFileFormat.md)
 
 ### Example Command
 
@@ -101,6 +102,25 @@ $ tarmate list xz file 'archive.tar.xz'
 - Additional arguments (after `--`) are passed directly to the application.
 - 2nd Additional arguments (after 2nd `--`) are passed directly to the aliasmate(append to first arguments).
 
+### Example Usage:
+
+It is intended to use `alias` (or `.bat` for windows) for this tool
+
+```bash
+# create shell alias in .bashrc for example
+alias mount="aliasmate -c ~/.config/aliasmate/mount.json --"
+
+# call aliasmate with mount.json
+mount myserver readwrite -t nfs
+# this command will be translated into
+# mount /media/myserver -o rw -t nfs
+```
+
+## Shell completion
+
+### ZSH completion
+
+add completion/aliasmate_completion.zsh to your .completion.zsh
 
 ---
 
@@ -116,16 +136,4 @@ Developed by [Slava Maslov](https://github.com/maslovw).
 
 ---
 
-### Example Usage:
 
-It is intended to use `alias` (or `.bat` for windows) for this tool
-
-```bash
-# create shell alias in .bashrc for example
-alias mount="aliasmate -c ~/.config/aliasmate/mount.json --"
-
-# call aliasmate with mount.json
-mount myserver readwrite -t nfs
-# this command will be translated into
-# mount /media/myserver -o rw -t nfs
-```
