@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 import subprocess
-import shlex
+from pprint import pprint
 
 VERSION='0.1.3'
 
@@ -14,12 +14,12 @@ except ImportError:
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-def read_and_print_file(file_path):
-    print(f"Config File: {file_path}")
+def read_and_print_file(file_path, prefix=''):
+    print(f"{prefix}Config File: {file_path}")
     try:
         with open(file_path, 'r') as file:
             for line in file:
-                print(line, end='')
+                print(prefix, line, end='')
     except FileNotFoundError:
         eprint(f"Error: The file '{file_path}' does not exist.")
     except IOError:
@@ -95,6 +95,15 @@ It is possible to use second `--` group of arguments to pass back to aliasmate''
         eprint("No 'application' key found in config file.")
         sys.exit(1)
     alias_dict = config.get('alias', {})
+    for key in alias_dict.keys():
+        if not isinstance(key, str):
+            print("Original file:")
+            read_and_print_file(config_file, '\t')
+            print("Parsed data:")
+            pprint(config);
+            eprint("ERROR: In YAML, specific words like on, off, yes, no, true, false, and their uppercase variants are automatically interpreted as boolean values (True or False) when unquoted.")
+            sys.exit(1)
+
 
     def substitute_tokens(tokens, alias_dict):
         position = 0
