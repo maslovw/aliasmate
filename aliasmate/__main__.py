@@ -186,7 +186,6 @@ the [aliasmate::concatenate_symbols] key
 
     global concatenate_symbols
     concatenate_symbols = config_dict.get('concatenate_symbols', '++')
-    print(f"Using concatenate_symbols: {concatenate_symbols}")
 
     if args.show_alias:
         read_and_print_file(config_file)
