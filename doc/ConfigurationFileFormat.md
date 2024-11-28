@@ -108,6 +108,7 @@ alias:
 
 aliasmate:
   verbose: True # always print command for execution
+  concatenate_symbols: "++" # use ++ to concatenate multiple arguments
 ```
 
 ```bash

@@ -46,6 +46,9 @@ Here’s an example `config.json` file:
     "remount": "-o remount",
     "loop": "-o loop"
   }
+  "aliasmate": {
+    "verbose": true
+  }
 }
 ```
 Read more here [Configuration File Format](doc/ConfigurationFileFormat.md)
